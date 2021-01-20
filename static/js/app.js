@@ -8,6 +8,7 @@ function getData() {
       var samples = data.samples
   
   defaultBarPlot(samples)
+  createDropdown(samples);
 
   // barPlot (samples);
   });   
@@ -32,11 +33,11 @@ function defaultBarPlot(samples) {
   console.log(`Default sample`);
   console.log(samples[0]);
 
-  var y_numbers = samples[0].sample_values;
-  top_ten_x = madeCut(y_numbers);
+  var x_samples = samples[0].sample_values;
+  top_ten_x = madeCut(x_samples);
 
-  var y_string = "UTO" + y_numbers;
-  console.log(y_string);
+  var y_ticks = samples[0].otu_ids;
+  var y_string = `UTO` + y_ticks;
 
   var data = [{
     x: top_ten_x,
@@ -56,7 +57,17 @@ Plotly.newPlot("bar", data)
 // function barPlot(samples) {
 
 //   // Add option for user to select options from drop down menu here....
-//   //  Use "Switch" function
+function createDropdown (samples) {
+  for (var i = 0; i< samples.length; i++) {
+    var dropdown_options = document.getElementById("selDataset");
+    var option = document.createElement("option");
+    option.text = `Sample ID: ${samples[i].id}`;
+    dropdown_options.add(option);
+  }
+
+}
+
+
 
 
 
