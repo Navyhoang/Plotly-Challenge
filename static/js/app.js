@@ -1,22 +1,50 @@
 // Use the D3 library to read in samples.json.
 function getData() {
-  d3.json("samples.json").then(function(data) {
+  d3.json("samples.json").then(data => {
       
-      console.log(`Data`)
-      console.log(data);
+    console.log(`Data`)
+    console.log(data);
 
-      var samples = data.samples
+    var samples = data.samples
+    var names = data.names
   
-  defaultBarPlot(samples)
-  createDropdown(samples);
+    createDropdown(names);
+    defaultPlots(samples);
 
-  // barPlot (samples);
-  });   
-}
+    // // Create event handler when a change takes place to the DOM
+    d3.selectAll("#selDataset").on("change", optionChanged);
+
+    function optionChanged() {
+      
+      //  Use D3 to select the dropdown menu
+      var dropdownvalue = d3.select("#selDataset").node().value
+      
+      //  Loop through samples to grab data according to the selected option
+      samples.map(sample => {
+        if (dropdownvalue == sample.id) {
+              
+          // Grab all sample values of the 1st sample
+          var samples_values = sample.sample_values;
+
+          // Run the madeCut function to slice out top 10 sample values
+          top_ten_x = madeCut(samples_values);
+          x = top_ten_x.reverse();
+
+          // Grab otu_ids of the 1st sample
+          var y_ticks = sample.otu_ids;
+          y = y_ticks.map(otuID => `OTU ${otuID}`).reverse();
+
+        };
+      });
+    
+      updateBarplot (samples);
+    }; 
+  });
+};
 
 getData();
 
-// Create function to filter out top 10 OTU_ids 
+// Create function to sort and slice out top 10 values 
 function madeCut (values) {
 
   values.sort(function(a,b) {return b-a});
@@ -26,89 +54,88 @@ function madeCut (values) {
   return top_ten
 }
 
-// Create the default plot
-function defaultBarPlot(samples) {
+// Create the default plots
+function defaultPlots(samples) {
 
   // First sample
   console.log(`Default sample`);
   console.log(samples[0]);
 
-  var x_samples = samples[0].sample_values;
-  top_ten_x = madeCut(x_samples);
+  // Grab all sample values of the 1st sample
+  var sample_values = samples[0].sample_values;
+  var otuIDs = samples[0].otu_ids;
+  var otuLabels = samples[0].otu_labels;
 
-  var y_ticks = samples[0].otu_ids;
-  var y_string = `UTO` + y_ticks;
+  console.log(`sample 0`)
+  console.log(sample_values);
+  // ---------------------------------------------------------------
+  // Default Bar Plot
+  // ---------------------------------------------------------------
 
-  var data = [{
-    x: top_ten_x,
-    y: y_string,
-    text: samples[3].otu_labels,
+  // Run the madeCut function to slice out top 10 sample values
+  top_ten_x = madeCut(sample_values);
+  
+  console.log(`sliced sample`);
+  console.log(top_ten_x);
+
+  var trace1 = {
+    x: top_ten_x.reverse(),
+    y: otuIDs.map(otuID => `OTU ${otuID}`).reverse(),
+    text: otuLabels,
     type: "bar",
-    orientation: "h",
+    orientation: "h"
 
-}];
+  };
 
-Plotly.newPlot("bar", data)
+  // trace1
+  var data1 = [trace1];
 
-}
+  // layout
+  var layout1 = {
+        title: "Top 10 OTUs found in the selected individual",
+        barmode: "group"
+  };
 
+  Plotly.newPlot("bar", data1, layout1);
 
-// // Create  dropdown menu to display the top 10 OTUs found in that individual.
-// function barPlot(samples) {
+  // ---------------------------------------------------------------
+  // Default Bubble Plot
+  // ---------------------------------------------------------------
 
-//   // Add option for user to select options from drop down menu here....
-function createDropdown (samples) {
-  for (var i = 0; i< samples.length; i++) {
-    var dropdown_options = document.getElementById("selDataset");
-    var option = document.createElement("option");
-    option.text = `Sample ID: ${samples[i].id}`;
-    dropdown_options.add(option);
+  var trace2 = {
+    x: otuIDs,
+    y: sample_values,
+    text: otuLabels,
+    mode: "markers",
+
+    // Marker size and color
+    marker: {                     
+        size: sample_values,
+        sizemode: 'area',
+        color: otuIDs
+    }
+    
+  };
+
+  // data
+  var data2 = [trace2];
+
+  // layout
+  var layout2 = {
+    title: "Sample Distribution Bubble Chart",
+    showlegend: false,
   }
 
-}
+  Plotly.newPlot("bubble", data2, layout2);
 
+};
 
+// // Create  dropdown menu 
+function createDropdown (names) {
+  var dropdown_options = d3.select("#selDataset");
 
+  names.map(name => {
+    dropdown_options.append("option").attr("value", name).text(name);
 
-
-//   // trace
-//   // values: sample_values 
-//   // labels: otu_ids 
-//   // hovertext: otu_labels
-
-      
-//     var trace1 = {
-//         x: samples.map(row => row.otu_ids[i]),
-//         y: samples.map(row => row.sample_values[3]),
-//         text: samples.map(row => row.otu_labels[3]),
-//         type: "bar",
-//         orientation: "h",
-        
-//     }
-  
-//     // data
-//     var data = [trace1];
-
-//     // layout
-//     var layout = {
-//         title: "Top 10 OTUs found in the selected individual",
-//         barmode: "group"
-//     }
-
-//     // Render the plot with the div tag with id "bar"
-//     Plotly.newPlot("bar", data, layout)
-
-// };
-
-      
-      
-      
-
-
-      // var otu_ids = unpack(data.samples, 1);
-      // var otu_labels = unpack(data.samples, 3);
-
-      // console.log(sample_values)
-      // console.log(otu_ids)
-      // console.log(otu_labels)
-      // barPlot(sample);
+  })
+};
