@@ -1,106 +1,95 @@
+//  object of value and array
+var movie = {
+    name: 'Star Wars',
+    sequeles: [15, 6, 1,2]
+};
 
+            // when value is a value
+            console.log(movie.name);
 
+            // when value is an array
+            console.log(movie.sequeles[0]);
 
-// Use the D3 library to read in samples.json.
-function getData(sample) {
-    d3.json("samples.json").then(function(data) {
-        var sample_values = unpack(data.samples, 2);
-        var otu_ids = unpack(data.samples, 1);
-        var otu_labels = unpack(data.samples, 3);
+            // Log all keys of an object
+            Object.keys(movie)
 
-        console.log(sample_values)
-        console.log(otu_ids)
-        console.log(otu_labels)
-        // barPlot(sample);
-    });   
-}
+            // Log all values of an object
+            Object.values(movie)
 
-// Create a horizontal bar chart with a dropdown menu to display the top 10 OTUs found in that individual.
-// Refer to the test Jupyter Notebook file for the json file structure
-    // values: sample_values 
-    // labels: otu_ids 
-    // hovertext: otu_labels
+            // Log all entries of an object
+            Object.entries(movie)
 
+// -----------------------------------------------------------------
+// Map an array
+var theStagesOfJS = ["confidence", "sadness", "confusion", "realization", "debugging", "satisfaction"];
 
-// function barPlot(sample) {
+            var stagesArray = theStagesOfJS.map(function(item, index) {
+            return `Stage ${index}  is ${item}`;
+            });
 
-//     // Add option for user to select options from drop down menu here....
-//     //  Use "Switch" function
+// -----------------------------------------------------------------
+// Map an array of objects
+var princesses = [
+    { name: "Rapunzel", age: 18 },
+    { name: "Mulan", age: 16 },
+    { name: "Anna", age: 18 },
+    { name: "Moana", age: 16 }
+  ];
+  
+            princesses.forEach(function(princess) {
+                console.log(`${princess.name} is ${princess.age} years old. `)
+            });
 
+            var names = princesses.map(function(princess) {
+                return princess.name
+              })
 
+            // ----------------
+            // Console log key-value pairs
+            Object.entries(userInfo).forEach( ([key, value]) => 
+                    console.log(`The item with key ${key} is ${value}`))
 
-//     // trace
-//     var trace1 = {
-//         x: otu_labels.map(row),
-//         y: sample_values.map(row),
-//         type: "bar",
-//         orientation: "h"
-//     }
+var recipes = [
+    { dish: "Fried fish", spice: "Dorrigo" },
+    { dish: "Crab Rangoon", spice: "Akudjura" },
+    { dish: "Pickled Okra", spice: "Chili pepper" }]
 
-    // data
-//     var data = [trace1];
+            var dishes = [];
+            var spices = [];
 
-//     // layout
-//     var layout = {
-//         title: "Top 10 OTUs found in the selected individual",
-//         barmode: "group"
-//     }
-
-//     // Render the plot with the div tag with id "bar"
-//     Plotly.newPlot("bar", data, layout)
-
-// };
+            // Push key-value pairs into seperate lists
+            recipes.forEach((recipe) => {
+                Object.entries(recipe).forEach(([key, value]) => {
+                  if (key === "dish") {
+                    dishes.push(value)
+                  }
+                  else {
+                    spices.push(value)
+                  }
+                })
+              })
+              
     
+            
+                      
+// -----------------------------------------------------------------
+// Add new li and add values
+d3.select("ul")
+    .selectAll("li")
+    .data(arr)
+    .enter()
+    .append("li")
+    .text(d => d+1000);
 
-// // Create a bubble chart that displays each sample.
-//     // x: otu_ids
-//     // y: sample_values
-//     // marker size: sample_values
-//     // marker colors: otu_ids
-//     // text: otu_labels
+d3.select("tbody")
+    // select tr even tho they are not created yet
+    .selectAll("tr")
+    .data(austinWeather)
+    .enter()
+    .append("tr")
+    // Use .html() method to return td elements inside each table row.
+    .html(d => `<td>${d.date}</td><td>${d.high}</td><td>${d.low}</td>`)
+  
 
-
-// function bubblePlot(sample) {
-
-//     // trace
-//     var trace1 = {
-//         x: otu_ids.map(row),
-//         y: sample_values.map(row),
-
-//         // Hover text of bubble chart
-//         text: otu_labels.map(row),
-
-//         mode: "markers",
-//         // Marker size and color
-//         marker: {                     
-//             size: sample_values.map(row),
-//             sizemode: 'area',
-//             color: otu_ids.map(row)
-//         }
-//     }
-
-//     // data
-//     var data = [trace1];
-
-//     // layout
-//     var layout = {
-//         title: "Sample Distribution Bubble Chart",
-//         showlegend: false,
-
-//     }
-
-//     // Render the plot with the div tag with id "bar"
-//     Plotly.newPlot("bubble", data, layout)
-
-// };
-
-// bubblePlot();
-
-// Display the sample metadata, i.e., an individual's demographic information.
-
-
-// Display each key-value pair from the metadata JSON object somewhere on the page.
-
-
-// Update all of the plots any time that a new sample is selected.
-// Create a dashboard
+            
+  
