@@ -14,7 +14,7 @@ function Main() {
         var metadata = data.metadata
         var samples = data.samples
 
-        // Define global variables
+        // Define global layout variables for bar and bubble plots
         var layout1 = {
             title: "Top 10 OTUs found in the selected individual",
             margin: {
@@ -71,10 +71,10 @@ function Main() {
         makePlots(default_samples, layout1, layout2);
 
         // Create event handler to filter data when option is selected from dropdown
-        d3.selectAll("#selDataset").on("change", updatePlots);     
+        d3.selectAll("#selDataset").on("change", update);        
 
-        // Update plots
-        function updatePlots() {
+        // Update window
+        function update() {
 
             //  Use D3 to select the dropdown menu
             var dropdownvalue = d3.select("#selDataset").node().value
@@ -100,7 +100,7 @@ function Main() {
                     var top_ten_x = sample.sample_values.slice(0,10).reverse();
                     var top_ten_y = sample.otu_ids.slice(0,10).reverse()                 
                     
-                    console.log(`Updated values for Bar Plot`)
+                    console.log(`Updated Bar Plot Values`)
                     console.log(`x: ${top_ten_x}`)
                     console.log(`y: ${top_ten_y}`)
         
@@ -123,16 +123,14 @@ function Main() {
                     // ----------------------------------------------------------------------
                     // Update Bubble Plot
                     // ----------------------------------------------------------------------
-                    // Grab sample values
                     
+                    // Grab sample values
                     var x = sample.otu_ids;
                     var y = sample.sample_values;
                     
-                    console.log(`New samples for Bubble Plot`)
-                    console.log(`x`)
-                    console.log(x);
-                    console.log(`y`)
-                    console.log(y);
+                    console.log(`Updated Bubble Plot Values`)
+                    console.log(`x: ${x}`)
+                    console.log(`y: ${y}`)
         
                     var trace2 = {
                         x: x,
@@ -156,12 +154,33 @@ function Main() {
         
                 }                    
             })
+
+            // ----------------------------------------------------------------------
+            // Update Demegraphic Info
+            // ----------------------------------------------------------------------
+                      
+            // Filter new metadata for the selected option
+            metadata.map(metadata => {
+                if (dropdownvalue == metadata.id) {
+
+                    console.log(`New demoinfo`)
+                    console.log(metadata)
+            
+                    // html("") removes content from the current tag
+                    d3.selectAll("#sample-metadata").html(" ")   
+                    var demo_info = d3.select("#sample-metadata")
+                    
+                    Object.entries(metadata).forEach(([key, value]) => {
+                        demo_info.append("p").text(`${key}:${value}`)
+                    })           
+
+                }
+            })
         };
 
-
-        // Update demo info
-
-    })
+    
+    });
+        
 };
 
 // Call Main function
@@ -198,11 +217,12 @@ function createDropdown (names) {
 
 
 function DemoInfo(metadata) {
-      
-    var demo_info = d3.select("#sample-metadata")
-  
-        // demo_info.html("")
     
+    console.log(`Default Demo Info`)
+    console.log(metadata)
+
+    var demo_info = d3.select("#sample-metadata")
+     
     Object.entries(metadata).forEach(([key, value]) => {
         demo_info.append("p").text(`${key}:${value}`)
     })
@@ -211,7 +231,6 @@ function DemoInfo(metadata) {
 // ---------------------------------------------------------------------
 // Create Plots Function
 // ---------------------------------------------------------------------
-
 
 /* sample
 id: "940"
@@ -235,11 +254,9 @@ function makePlots(sample, layout1, layout2) {
     var top_ten_y = otuIDs.slice(0,10).reverse();
 
 
-    console.log(`Default top ten samples for Bar Plot`);
-    console.log(`x`)
-    console.log(top_ten_x);
-    console.log(`y`)
-    console.log(top_ten_y);
+    console.log(`Default Bar Plot Values`);
+    console.log(`x: ${top_ten_x}`)
+    console.log(`y: ${top_ten_y}`)
     
     
     var trace1 = {
@@ -265,11 +282,10 @@ function makePlots(sample, layout1, layout2) {
     var x = otuIDs;
     var y = sample_values;
     
-    console.log(`Default samples for Bubble Plot`)
-    console.log(`x`)
-    console.log(x);
-    console.log(`y`)
-    console.log(y);
+    console.log(`Default Bubble Plot Values`)
+    console.log(`x: ${x}`)
+    console.log(`y: ${y}`)
+
 
     var trace2 = {
     x: x,
