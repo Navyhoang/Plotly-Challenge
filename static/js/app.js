@@ -59,16 +59,35 @@ function Main() {
             }
         };
 
+        var layout3 = {
+            width: 800,
+            height: 600,
+            margin: { t: 30, b: 25, l: 25, r: 25 },
+            grid: { rows: 2, columns: 2, pattern: "independent" },
+            template: {
+              data: {
+                indicator: [
+                  {
+                    title: { text: "Belly Button Washing Freq." },
+                    mode: "number+delta+gauge",
+                    delta: { reference: 9 }
+                  }
+                ]
+              }
+            }
+        };
+
         // Create Dropdown Menu
         createDropdown(names);
 
         // Grab default dataset
         var default_metadata = metadata[0];
         var default_samples = samples[0];
+        var default_metadata = metadata[0];
 
         // Create default demo info and default plots
         DemoInfo(default_metadata);
-        makePlots(default_samples, layout1, layout2);
+        makePlots(default_samples, default_metadata, layout1, layout2, layout3);
 
         // Create event handler to filter data when option is selected from dropdown
         d3.selectAll("#selDataset").on("change", update);        
@@ -156,13 +175,14 @@ function Main() {
             })
 
             // ----------------------------------------------------------------------
-            // Update Demegraphic Info
+            // Update Demographic Info and Indicator
             // ----------------------------------------------------------------------
                       
             // Filter new metadata for the selected option
             metadata.map(metadata => {
                 if (dropdownvalue == metadata.id) {
 
+                    // Update Demo Info
                     console.log(`New demoinfo`)
                     console.log(metadata)
             
@@ -172,10 +192,35 @@ function Main() {
                     
                     Object.entries(metadata).forEach(([key, value]) => {
                         demo_info.append("p").text(`${key}:${value}`)
-                    })           
+                    })
+                    
+                    // Update Indicator
+                    console.log(`New Washing Frequency`)
+                    console.log(metadata.wfreq)
+
+
+                    var trace3 = {
+                        type: "indicator",
+                        value: metadata.wfreq,
+                        gauge: {axis: {
+                                    visible: true,
+                                    range: [null,9]
+                        }},
+                        domain: {row:0, column:0}
+                    };
+                
+                    // data
+                    var data3 = [trace3];
+                
+                    // Create bubble plot
+                    Plotly.newPlot("gauge", data3, layout3);
+                    
 
                 }
             })
+
+
+
         };
 
     
@@ -238,12 +283,16 @@ otu_ids: (80) [1167, 2859, 482, 2264,...]
 otu_labels: (80) ["Bacteria;...", "Bacteria;Peptoniphilus, ...", "Bacteria; ...", ...]
 sample_values: (80) [163, 126, 113, 78, ...] */
 
-function makePlots(sample, layout1, layout2) {
+function makePlots(sample, metadata, layout1, layout2, layout3) {
 
     // Grab all sample values of the 1st sample
     var sample_values = sample.sample_values;
     var otuIDs = sample.otu_ids;
     var otuLabels = sample.otu_labels;
+    var wfreq = metadata.wfreq;
+
+    console.log(`Default metadata`)
+    console.log(metadata)
       
     // ---------------------------------------------------------------
     // Bar Plot
@@ -309,5 +358,29 @@ function makePlots(sample, layout1, layout2) {
     // Create bubble plot
     Plotly.newPlot("bubble", data2, layout2);
 
+    // ---------------------------------------------------------------
+    // Default Indicator Chart
+    // ---------------------------------------------------------------
+    
+
+    var trace3 = {
+        type: "indicator",
+        value: wfreq,
+        gauge: {axis: {
+                    visible: true,
+                    range: [null,9]
+        }},
+        domain: {row:0, column:0}
+    };
+
+    // data
+    var data3 = [trace3];
+
+    // Create bubble plot
+    Plotly.newPlot("gauge", data3, layout3);
+
+    
+
 };
+
 
