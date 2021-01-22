@@ -1,182 +1,279 @@
-// Use the D3 library to read in samples.json.
-function getData() {
-  d3.json("samples.json").then(data => {
-      
-    console.log(`Data`)
-    console.log(data);
+// ---------------------------------------------------------------------
+// Main Function
+// ---------------------------------------------------------------------
+function Main() {
 
-    // names is an array
-    var names = data.names
-
-    // metadata and samples are arrays of objects
-    var metadata = data.metadata
-    var samples = data.samples
-  
-    // Run functions to create default displays
-    createDropdown(names, metadata);
-    defaultPlots(samples, metadata);
-
-    // Create event handler when a change takes place to the DOM
-    d3.selectAll("#selDataset").on("change", updatePlots, updateInfo);
-  
-
-    function updatePlots() {
-      
-      //  Use D3 to select the dropdown menu
-      var dropdownvalue = d3.select("#selDataset").node().value
-      
-      //  Loop through samples to grab data according to the selected option
-      samples.map(sample => {
-        if (dropdownvalue == sample.id) {
-              
-          // Grab all sample values of the selected option
-          var samples_values = sample.sample_values;
-
-          // Run the madeCut function to slice out top 10 sample values
-          top_ten_x = madeCut(samples);
-          var x = top_ten_x.reverse();
-
-          // Grab otu_ids of the 1st sample
-          var y_ticks = sample.otu_ids;
-          var y = y_ticks.map(otuID => `OTU ${otuID}`).reverse();
-
-          // This isnt working ??????????????????
-          // Update Bar Plot
-          Plotly.restyle("bar", "X", [x]);
-          Plotly.restyle("bar", "y", [y]);
-          
-          console.log(`Updated values for Bar Plot`)
-          console.log(`x: ${x}`)
-          console.log(`y: ${y}`)
-
-
-          // Update Bubble Plot
-          Plotly.restyle("bubble", "X", [sample.otu_ids]);
-          Plotly.restyle("bubble", "y", [samples_values]);
-
-          console.log(`Updated values for Bubble Plot`)
-          console.log(`x: ${sample.otu_ids}`)
-          console.log(`y: ${samples_values}`)
-
+    // Use the D3 library to read in samples.json.
+    d3.json("samples.json").then(data => {
         
-        }
-      })
-    };
+        console.log(`Data`)
+        console.log(data);
 
+        // Access keys from data
+        var names = data.names
+        var metadata = data.metadata
+        var samples = data.samples
 
-
-    // This isnt working??????????????????????????
-    function updateInfo() {
-
-      //  Use D3 to select the dropdown menu
-      var dropdownvalue = d3.select("#selDataset").node().value
-
-      // Change infomation box
-      metadata.map(row => {
-        if (dropdownvalue == metadata.id) {
-          var new_entry = Object.entries(row);
-
-        d3.select("#sample-metadata")
-        .append("p")
-        .text(`${new_entry}`);
-
-          }
-      });
-      
-    };
-     
-  });
-
-};
-
-getData();
-
-// Create  dropdown menu 
-function createDropdown (names) {
-  var dropdown_options = d3.select("#selDataset");
-
-  names.map(name => {
-    dropdown_options.append("option").attr("value", name).text(name);
-
-  })
-};
-
-// Create the default plots
-function defaultPlots(samples, metadata) {
-
-  // Grab all sample values of the 1st sample
-  var sample_values = samples[0].sample_values;
-  var otuIDs = samples[0].otu_ids;
-  var otuLabels = samples[0].otu_labels;
-
-  //  Grab demo info of default sample
-  var defaultdemoinfo = metadata[0]
-  console.log(`Default demoinfo`)
-  console.log(defaultdemoinfo)
-
-  // This isnt working
-  var demo_info = d3.select("#sample-metadata")
-
-    
-  Object.entries(defaultdemoinfo).forEach(([key, value]) => {
-    demo_info.append("p").text(`${key}:${value}`)
-  })
-  
-
-  // ---------------------------------------------------------------
-  // Default Bar Plot
-  // ---------------------------------------------------------------
-
-  // Run the madeCut function to slice out top 10 sample values
-  var top_ten = madeCut(sample_values);
-  var top_ten_x = top_ten[0];
-  var top_ten_y = top_ten[1];
-  
-  console.log(`Default top ten samples for Bar Plot`);
-  console.log(top_ten_x);
-  console.log(top_ten_y);
-
-
-  var trace1 = {
-    x: top_ten_x.reverse(),
-    y: top_ten_y.reverse(),
-    text: otuLabels,
-    type: "bar",
-    orientation: "h"
-
-  };
-
-  // trace1
-  var data1 = [trace1];
-
-  // layout
-  var layout1 = {
-        title: "Top 10 OTUs found in the selected individual",
-        barmode: "group",
-        xaxis: {
-          title: {
-            text: 'Sample Values',
-            font: {
-              family: 'Courier New, monospace',
-              size: 18,
-              color: '#7f7f7f'
+        // Define global variables
+        var layout1 = {
+            title: "Top 10 OTUs found in the selected individual",
+            margin: {
+                t: 50,
+                l: 200
+            },
+            barmode: "group",
+            xaxis: {
+                title: {
+                    text: 'Sample Values',
+                    font: {
+                    family: 'Courier New, monospace',
+                    size: 18,
+                    color: '#7f7f7f'
+                    }
+                }
             }
-          }
-        }
+        };
+
+        var layout2 = {
+            title: "Sample Distribution Bubble Chart",
+            showlegend: false,
+            xaxis: {
+                title: {
+                    text: 'OTU_IDS',
+                    font: {
+                        family: 'Courier New, monospace',
+                        size: 18,
+                        color: '#7f7f7f'
+                    }
+                },
+            },
+            yaxis: {
+                title: {
+                    text: 'Sample Values',
+                    font: {
+                        family: 'Courier New, monospace',
+                        size: 18,
+                        color: '#7f7f7f'
+                    }
+                }
+            }
+        };
+
+        // Create Dropdown Menu
+        createDropdown(names);
+
+        // Grab default dataset
+        var default_metadata = metadata[0];
+        var default_samples = samples[0];
+
+        // Create default demo info and default plots
+        DemoInfo(default_metadata);
+        makePlots(default_samples, layout1, layout2);
+
+        // Create event handler to filter data when option is selected from dropdown
+        d3.selectAll("#selDataset").on("change", updatePlots);     
+
+        // Update plots
+        function updatePlots() {
+
+            //  Use D3 to select the dropdown menu
+            var dropdownvalue = d3.select("#selDataset").node().value
+           
+            // Filter plotting data for the selected option
+            samples.map(sample => {
+                if (dropdownvalue == sample.id) {
+        
+                    // ----------------------------------------------------------------------
+                    // Update Bar Plot
+                    // ----------------------------------------------------------------------
+        
+                    console.log(`Selected Sample`)
+                    console.log(sample)
+        
+                    // Grab top ten sample values of the selected id
+                    /* sample
+                    id: "940"
+                    otu_ids: (80) [1167, 2859, 482, 2264,...]
+                    otu_labels: (80) ["Bacteria;...", "Bacteria;Peptoniphilus, ...", "Bacteria; ...", ...]
+                    sample_values: (80) [163, 126, 113, 78, ...] */
+        
+                    var top_ten_x = sample.sample_values.slice(0,10).reverse();
+                    var top_ten_y = sample.otu_ids.slice(0,10).reverse()                 
+                    
+                    console.log(`Updated values for Bar Plot`)
+                    console.log(`x: ${top_ten_x}`)
+                    console.log(`y: ${top_ten_y}`)
+        
+                    // new trace
+                    var trace1 = {
+                        x: top_ten_x,
+                        y: top_ten_y.map(y => `OTU ${y}`),
+                        text: sample.otu_labels,
+                        type: "bar",
+                        orientation: "h"
+                    
+                    };
+                    
+                    // trace1
+                    var data1 = [trace1];
+                    
+                    // Update bar plot
+                    Plotly.newPlot("bar", data1, layout1);
+                    
+                    // ----------------------------------------------------------------------
+                    // Update Bubble Plot
+                    // ----------------------------------------------------------------------
+                    // Grab sample values
+                    
+                    var x = sample.otu_ids;
+                    var y = sample.sample_values;
+                    
+                    console.log(`New samples for Bubble Plot`)
+                    console.log(`x`)
+                    console.log(x);
+                    console.log(`y`)
+                    console.log(y);
+        
+                    var trace2 = {
+                        x: x,
+                        y: y,
+                        text: sample.otu_labels,
+                        mode: "markers",
+                        marker: {                     
+                            size: sample.sample_values,
+                            sizeref: 0.1,
+                            sizemode: 'area',
+                            color: sample.otu_ids
+                        }
+                        
+                    };
+                    
+                    // data
+                    var data2 = [trace2];
+        
+                    // Update bubble plot
+                    Plotly.newPlot("bubble", data2, layout2);
+        
+                }                    
+            })
+        };
+
+
+        // Update demo info
+
+    })
+};
+
+// Call Main function
+Main();
+
+// ---------------------------------------------------------------------
+// Create Dropdown Menu
+// ---------------------------------------------------------------------
+
+function createDropdown (names) {
+
+    //select dropdown id from html
+    var dropdown_options = d3.select("#selDataset");  
+  
+    // Loop through names array and create options in dropdown box
+    names.map(name => {                               
+      dropdown_options.append("option").attr("value", name).text(name);
+  
+    })
   };
 
-  Plotly.newPlot("bar", data1, layout1);
+// ---------------------------------------------------------------------
+// Create Demo Info Function
+// ---------------------------------------------------------------------
 
-  // ---------------------------------------------------------------
-  // Default Bubble Plot
-  // ---------------------------------------------------------------
+  /* Metadata
+  age: 24
+  bbtype: "I"
+  ethnicity: "Caucasian"
+  gender: "F"
+  id: 940
+  location: "Beaufort/NC"
+  wfreq: 2 */
 
-  console.log(`Default samples for Bubble Plot`)
-  console.log(sample_values);
 
-  var trace2 = {
-    x: otuIDs,
-    y: sample_values,
+function DemoInfo(metadata) {
+      
+    var demo_info = d3.select("#sample-metadata")
+  
+        // demo_info.html("")
+    
+    Object.entries(metadata).forEach(([key, value]) => {
+        demo_info.append("p").text(`${key}:${value}`)
+    })
+};
+
+// ---------------------------------------------------------------------
+// Create Plots Function
+// ---------------------------------------------------------------------
+
+
+/* sample
+id: "940"
+otu_ids: (80) [1167, 2859, 482, 2264,...]
+otu_labels: (80) ["Bacteria;...", "Bacteria;Peptoniphilus, ...", "Bacteria; ...", ...]
+sample_values: (80) [163, 126, 113, 78, ...] */
+
+function makePlots(sample, layout1, layout2) {
+
+    // Grab all sample values of the 1st sample
+    var sample_values = sample.sample_values;
+    var otuIDs = sample.otu_ids;
+    var otuLabels = sample.otu_labels;
+      
+    // ---------------------------------------------------------------
+    // Bar Plot
+    // ---------------------------------------------------------------
+    
+    // Grab top ten sample values
+    var top_ten_x = sample_values.slice(0,10).reverse();
+    var top_ten_y = otuIDs.slice(0,10).reverse();
+
+
+    console.log(`Default top ten samples for Bar Plot`);
+    console.log(`x`)
+    console.log(top_ten_x);
+    console.log(`y`)
+    console.log(top_ten_y);
+    
+    
+    var trace1 = {
+        x: top_ten_x,
+        y: top_ten_y.map(y => `OTU ${y}`),
+        text: otuLabels,
+        type: "bar",
+        orientation: "h"
+    
+    };
+    
+    // trace1
+    var data1 = [trace1];
+    
+    // Create bar plot  
+    Plotly.newPlot("bar", data1, layout1);
+    
+    // ---------------------------------------------------------------
+    // Default Bubble Plot
+    // ---------------------------------------------------------------
+    
+    // Grab sample values
+    var x = otuIDs;
+    var y = sample_values;
+    
+    console.log(`Default samples for Bubble Plot`)
+    console.log(`x`)
+    console.log(x);
+    console.log(`y`)
+    console.log(y);
+
+    var trace2 = {
+    x: x,
+    y: y,
     text: otuLabels,
     mode: "markers",
 
@@ -188,50 +285,13 @@ function defaultPlots(samples, metadata) {
         color: otuIDs
     }
     
-  };
-
-  // data
-  var data2 = [trace2];
-
-  // layout
-  var layout2 = {
-    title: "Sample Distribution Bubble Chart",
-    showlegend: false,
-    xaxis: {
-      title: {
-        text: 'OTU_IDS',
-        font: {
-          family: 'Courier New, monospace',
-          size: 18,
-          color: '#7f7f7f'
-        }
-      },
-    },
-    yaxis: {
-      title: {
-        text: 'Sample Values',
-        font: {
-          family: 'Courier New, monospace',
-          size: 18,
-          color: '#7f7f7f'
-        }
-      }
-    }
+    };
     
-  };
+    // data
+    var data2 = [trace2];
 
-  Plotly.newPlot("bubble", data2, layout2);
+    // Create bubble plot
+    Plotly.newPlot("bubble", data2, layout2);
 
 };
 
-
-// Create function to sort and slice out top 10 values 
-function madeCut (sample_values, ) {
-
-  var top_ten_x = samples.sample_values.slice(0,10);
-  var top_ten_y = samples.otu_ids.slice(0,10);
-
-  return top_ten_x, top_ten_y
-};
-
-         
